@@ -2,12 +2,16 @@
 // import { schema } from './schema'
 // import { context } from './context'
 import Hapi from '@hapi/hapi'
-import status from './plugins/status'
-import prisma from './plugins/prisma'
 import hapiAuthJWT from 'hapi-auth-jwt2'
-import users from './plugins/users'
-import emailPlugin from './plugins/email'
 import authPlugin from './plugins/auth'
+import coursesPlugin from './plugins/courses'
+import emailPlugin from './plugins/email'
+import prisma from './plugins/prisma'
+import statusPlugin from './plugins/status'
+import testResultsPlugin from './plugins/test-results'
+import testsPlugin from './plugins/tests'
+import users from './plugins/users'
+import usersEnrollmentPlugin from './plugins/users-enrollment'
 
 // new ApolloServer({ schema, context: context }).listen({ port: 4000 }, () =>
 //   console.log(`
@@ -25,7 +29,11 @@ export async function createServer(): Promise<Hapi.Server> {
     hapiAuthJWT,
     authPlugin,
     emailPlugin,
-    status,
+    testResultsPlugin,
+    usersEnrollmentPlugin,
+    coursesPlugin,
+    testsPlugin,
+    statusPlugin,
     prisma,
     users,
   ])

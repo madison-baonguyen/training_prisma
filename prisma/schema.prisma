@@ -79,8 +79,8 @@ model TestResult {
   // relations
   testId   Int
   test     Test @relation(fields: [testId], references: [id]) // relation field
-  studenId Int
-  student  User @relation(name: "results", fields: [studenId], references: [id])
+  studentId Int
+  student  User @relation(name: "results", fields: [studentId], references: [id])
   graderId Int
   gradedBy User @relation(name: "graded", fields: [graderId], references: [id])
 }

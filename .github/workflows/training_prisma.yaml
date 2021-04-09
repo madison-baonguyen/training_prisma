@@ -1,4 +1,4 @@
-name: grading-app
+name: training_prisma
 on: push
 
 jobs:
