@@ -1,10 +1,32 @@
 import { PrismaClient, UserRole } from '@prisma/client'
+import { ForbiddenError } from 'apollo-server-errors'
 
 const prisma = new PrismaClient()
 
-const isRequestedUserOrAdmin = async (userId: string, isAdmin: boolean) => {}
+export const isAdmin = async (isAdmin: boolean, express: any) => {
+  if (isAdmin) {
+    express.req.next
+  } else {
+    throw new ForbiddenError('Forbidden')
+  }
+}
 
-const validateAPIToken = async (tokenId: number) => {
+export const isRequestedUserOrAdmin = async (id: any, express: any) => {
+  const { userId, isAdmin } = express.req.payload.credentials
+  console.log('=======', express.req.payload.credentials)
+  console.log(id, userId)
+
+  if (isAdmin) {
+    // If the user is an admin allow
+    express.req.next
+  } else if (id == userId) {
+    return express.req.next
+  } else {
+    throw new ForbiddenError('Forbidden')
+  }
+}
+
+export const validateAPIToken = async (tokenId: number) => {
   try {
     const fetchedToken = await prisma.token.findUnique({
       where: {

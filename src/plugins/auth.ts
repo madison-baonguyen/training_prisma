@@ -123,7 +123,7 @@ declare module '@hapi/hapi' {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'SUPER_SECRET_JWT_SECRET'
-const JWT_ALGORITHM = 'HS256'
+export const JWT_ALGORITHM = 'HS256'
 const AUTHENTICATION_TOKEN_EXPIRATION_HOURS = 12
 
 const authenHandler = async (

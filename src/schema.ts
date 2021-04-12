@@ -14,9 +14,11 @@ import {
   generateAuthToken,
   generateEmailToken,
 } from './email'
-import { ICreateOrUpdateUser, ICreateUser } from './resolvers.i'
+import { ICreateOrUpdateUser, ICreateUser, IPayload } from './resolvers.i'
 import { ContextFunction } from './server'
 import { TokenType } from '@prisma/client'
+import { isAdmin, isRequestedUserOrAdmin } from './utils'
+import { Request } from 'express'
 
 const typeDefs = gql`
   "Query"
@@ -47,6 +49,7 @@ const typeDefs = gql`
     lastName: String!
     email: String!
     social: JSON
+    isAdmin: Boolean
   }
 
   input CourseInput {
@@ -153,6 +156,8 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     users: async (_parent: any, _args: any, context: ContextFunction) => {
+      const payload = context.express.req.payload as IPayload
+      await isAdmin(payload.credentials.isAdmin, context.express)
       return await context.prisma.user.findMany({
         select: {
           id: true,
@@ -164,10 +169,15 @@ const resolvers = {
       })
     },
 
-    user: async (_parent: any, { userId }: any, context: ContextFunction) => {
+    user: async (
+      _parent: any,
+      arg: { userId: any },
+      context: ContextFunction,
+    ) => {
+      await isRequestedUserOrAdmin(arg.userId, context.express)
       const user = await context.prisma.user.findUnique({
         where: {
-          id: userId,
+          id: arg.userId,
         },
         select: {
           id: true,
@@ -221,6 +231,7 @@ const resolvers = {
       const tokenExpiration = add(new Date(), {
         minutes: EMAIL_TOKEN_EXPIRATION_MINUTES,
       })
+      console.log('emailToken', emailToken)
 
       await context.prisma.token.create({
         data: {
@@ -306,7 +317,9 @@ const resolvers = {
       arg: { data: ICreateUser },
       context: ContextFunction,
     ) => {
+      await isRequestedUserOrAdmin(arg.data.userId, context.express)
       const data = arg.data
+
       if (!data.userId) {
         return await context.prisma.user.create({
           data: {
@@ -314,6 +327,7 @@ const resolvers = {
             lastName: data.lastName,
             email: data.email,
             social: JSON.stringify(data.social),
+            isAdmin: data.isAdmin,
           },
           select: {
             id: true,
@@ -331,7 +345,7 @@ const resolvers = {
           data: {
             firstName: data.firstName,
             lastName: data.lastName,
-            email: data.email,
+            // email: data.email,
             social: JSON.stringify(data.social),
           },
         })
@@ -342,8 +356,7 @@ const resolvers = {
       arg: { userId: number },
       context: ContextFunction,
     ) => {
-      console.log(arg.userId)
-
+      await isRequestedUserOrAdmin(arg.userId, context.express)
       const user = await context.prisma.$transaction([
         context.prisma.token.deleteMany({
           where: {
